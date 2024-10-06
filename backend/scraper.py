@@ -40,23 +40,25 @@ class Scraper:
     def extract(self):
         content = self.get_scraped_data()
         soup = bs(content, "html.parser")
+        posts = soup.find_all("tr", class_="athing comtr")
 
-        timestamp = soup.find_all("span", class_="age")
-        authors = soup.find_all("a", class_="hnuser")
-        comments = soup.find_all("div", class_="commtext")
+        for i in range(len(posts)):
+            post = posts[i]
+            post_id = posts[i]["id"]
+            post_link = f"https://news.ycombinator.com/item?id={post_id}"
 
-        for i in range(len(comments)):
-            post_link = timestamp[i].find("a")["href"]
+            comment = post.find("div", class_="commtext")
+            author = post.find("a", class_="hnuser")
 
-            author_name = authors[i].text
+            author_name = author.text
             author = {"name": author_name, "link": self.PROFILE_LINK + author_name}
+            comment_text = comment.text
 
-            comment_text = comments[i].text
             if ("|" not in comment_text) and ("|" not in comment_text):
                 self.misc_data[i] = {
                     "author": author,
                     "body": comment_text,
-                    "post_link": "https://news.ycombinator.com/" + post_link,
+                    "post_link": post_link,
                 }
                 continue
 
@@ -74,7 +76,7 @@ class Scraper:
                 "metadata": metadata,
                 "body": body,
                 "status": "not applied",
-                "post_link": "https://news.ycombinator.com/" + post_link,
+                "post_link": post_link,
             }
 
     def dump(self):
@@ -120,8 +122,13 @@ class Scraper:
                 f"""
                 INSERT INTO {self.table_name} (job_name, author_name, author_link, metadata, body, status, post_link)
                 VALUES (%s, %s, %s, %s, %s, %s, %s)
-                ON CONFLICT (job_name) DO NOTHING
-                """,
+                ON CONFLICT (job_name) DO UPDATE SET 
+                    author_name = EXCLUDED.author_name,
+                    author_link = EXCLUDED.author_link,
+                    metadata = EXCLUDED.metadata,
+                    body = EXCLUDED.body,
+                    post_link = EXCLUDED.post_link;
+                """,  # ignore status in update
                 (
                     job,
                     data["author"]["name"],
@@ -132,6 +139,23 @@ class Scraper:
                     data["post_link"],
                 ),
             )
+
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS hn_post (
+                table_name TEXT PRIMARY KEY,
+                post_link TEXT
+            )
+        """)
+
+        cur.execute(
+            """
+                INSERT INTO hn_post (table_name, post_link)
+                VALUES (%s, %s)
+                ON CONFLICT (table_name) DO UPDATE SET 
+                    post_link = EXCLUDED.post_link;
+                """,
+            (self.table_name, self.URL),
+        )
 
         conn.commit()
         cur.close()

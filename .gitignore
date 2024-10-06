@@ -3,3 +3,4 @@
 __pycache__
 .env
 main.py
+!requirements.txt
