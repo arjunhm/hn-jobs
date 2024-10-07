@@ -44,40 +44,48 @@ class Scraper:
 
         for i in range(len(posts)):
             post = posts[i]
+
+            # post
             post_id = posts[i]["id"]
             post_link = f"https://news.ycombinator.com/item?id={post_id}"
 
-            comment = post.find("div", class_="commtext")
-            author = post.find("a", class_="hnuser")
+            # content
+            comment = post.select_one("div.commtext")
+            links = " ".join([a["href"] for a in comment.find_all("a", href=True)])
+            header = comment.find(text=True, recursive=False).strip()
+            company_name = header.split("|")[0].strip()
+            role = "|".join(header.split("|")[1:])
+            try:
+                body = comment.find_all("p")[0].text
+            except:
+                continue
 
+            # author
+            author = post.find("a", class_="hnuser")
             author_name = author.text
             author = {"name": author_name, "link": self.PROFILE_LINK + author_name}
-            comment_text = comment.text
 
-            if ("|" not in comment_text) and ("|" not in comment_text):
+            if len(role) > 100:
+                role = ""
+                body = role
+
+            if ("|" not in role) and ("|" not in role):
                 self.misc_data[i] = {
                     "author": author,
-                    "body": comment_text,
+                    "body": body,
                     "post_link": post_link,
                 }
                 continue
 
-            parts = comment_text.split("|")
-            company_name = parts[0].strip()
-            metadata = "|".join(parts[1:-1]).strip()
-            body = parts[-1].strip()
-
-            if len(metadata) > 100:
-                metadata = ""
-                body = metadata
-
             self.data[company_name] = {
                 "author": author,
-                "metadata": metadata,
+                "role": role,
                 "body": body,
                 "status": "not applied",
                 "post_link": post_link,
+                "links": links,
             }
+        print(len(self.data))
 
     def dump(self):
         with open(self.data_file, "w") as fp:
@@ -85,15 +93,6 @@ class Scraper:
 
         with open(self.misc_file, "w") as fp:
             json.dump(self.misc_data, fp, indent=2)
-
-    def test(self):
-        with open(self.data_file) as fp:
-            data = json.load(fp)
-        with open(self.misc_file) as fp:
-            misc_data = json.load(fp)
-
-        print("data=", len(data))
-        print("misc=", len(misc_data))
 
     def push_to_db(self):
         conn = psycopg2.connect(
@@ -110,33 +109,38 @@ class Scraper:
                 job_name TEXT PRIMARY KEY,
                 author_name TEXT,
                 author_link TEXT,
-                metadata TEXT,
+                role TEXT,
                 body TEXT,
                 status TEXT,
-                post_link TEXT
+                post_link TEXT,
+                links TEXT,
+                manual_fix BOOLEAN DEFAULT FALSE
             )
         """)
 
         for job, data in self.data.items():
             cur.execute(
                 f"""
-                INSERT INTO {self.table_name} (job_name, author_name, author_link, metadata, body, status, post_link)
-                VALUES (%s, %s, %s, %s, %s, %s, %s)
+                INSERT INTO {self.table_name} (job_name, author_name, author_link, role, body, status, post_link, links)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                 ON CONFLICT (job_name) DO UPDATE SET 
                     author_name = EXCLUDED.author_name,
                     author_link = EXCLUDED.author_link,
-                    metadata = EXCLUDED.metadata,
+                    role = EXCLUDED.role,
                     body = EXCLUDED.body,
-                    post_link = EXCLUDED.post_link;
+                    post_link = EXCLUDED.post_link,
+                    links = EXCLUDED.links
+                WHERE {self.table_name}.manual_fix = FALSE;
                 """,  # ignore status in update
                 (
                     job,
                     data["author"]["name"],
                     data["author"]["link"],
-                    data["metadata"],
+                    data["role"],
                     data["body"],
                     data["status"],
                     data["post_link"],
+                    data["links"],
                 ),
             )
 
@@ -162,15 +166,47 @@ class Scraper:
         conn.close()
 
     def run(self):
-        self.scrape_site()
-        self.extract()
-        # self.dump()
-        # self.test()
-        self.push_to_db()
+        try:
+            self.scrape_site()
+            self.extract()
+            self.push_to_db()
+        except Exception as e:
+            print("failed", e)
+
+    def load_initial_data(self):
+        conn = psycopg2.connect(
+            dbname=self.dbname,
+            user=self.user,
+            password=self.password,
+            host=self.host,
+            port=self.port,
+        )
+
+        cur = conn.cursor()
+        cur.execute("""
+            DO $$ 
+            DECLARE 
+                r RECORD;
+            BEGIN 
+                FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public') 
+                LOOP 
+                    EXECUTE 'DROP TABLE IF EXISTS ' || quote_ident(r.tablename) || ' CASCADE';
+                END LOOP; 
+            END $$;
+        """)
+
+        s = Scraper("https://news.ycombinator.com/item?id=41709301", "oct_24")
+        s.run()
+        s = Scraper("https://news.ycombinator.com/item?id=41425910", "sept_24")
+        s.run()
+
+        conn.commit()
+        cur.close()
+        conn.close()
 
 
 def main():
-    scraper = Scraper()
+    scraper = Scraper("https://news.ycombinator.com/item?id=41425910", "sept_24")
     scraper.run()
 
 

@@ -31,7 +31,7 @@ def scraper():
 
 
 def get_db_names():
-    return ["oct_24", "sept_24"]
+    return ["oct_24", "sept_24", "july_2024"]
 
 
 @app.route("/databases", methods=["GET"])
@@ -80,10 +80,11 @@ def get_jobs(status, db_name):
                 "job_name": row[0],
                 "author_name": row[1],
                 "author_link": row[2],
-                "metadata": row[3],
+                "role": row[3],
                 "body": row[4],
                 "status": row[5],
                 "post_link": row[6],
+                "links": row[7],
             }
         )
 
