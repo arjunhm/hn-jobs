@@ -4,7 +4,7 @@ Run `pip install -r requirements.txt`
 
 ## Configuration
 
-`.env` 
+Create `.env` inside `backend/`  
 
 ```
 DB_NAME = "my-db"
