@@ -120,6 +120,20 @@ class PSQLDriver:
         self.cur.execute("SELECT table_name FROM hn_post")
         return [name[0] for name in self.cur.fetchall()]
 
+    def drop_all_tables(self):
+        self.cur.execute("""
+            DO $$ 
+            DECLARE 
+                r RECORD;
+            BEGIN 
+                FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public') 
+                LOOP 
+                    EXECUTE 'DROP TABLE IF EXISTS ' || quote_ident(r.tablename) || ' CASCADE';
+                END LOOP; 
+            END $$;
+        """)
+        self.conn.commit()
+
     def close(self):
         self.conn.commit()
         self.cur.close()
