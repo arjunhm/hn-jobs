@@ -1,5 +1,6 @@
 import os
 
+from logging.config import dictConfig
 import psycopg2
 from db import PSQLDriver
 from dotenv import load_dotenv
@@ -8,9 +9,39 @@ from scraper import Scraper
 
 load_dotenv()
 
+log_dir = "log"
+if not os.path.exists(log_dir):
+    os.makedirs(log_dir)
+
+dictConfig(
+    {
+        "version": 1,
+        "formatters": {
+            "default": {
+                "format": "%(asctime)s - %(module)s - %(levelname)s - %(message)s",
+            },
+        },
+        "handlers": {
+            "file": {
+                "class": "logging.handlers.RotatingFileHandler",
+                "formatter": "default",
+                "filename": "log/app.log",
+                "maxBytes": 10000,
+                "backupCount": 3,
+                "level": "INFO",
+            },
+        },
+        "root": {
+            "level": "INFO",
+            "handlers": ["file"],
+        },
+    }
+)
+
 app = Flask(__name__)
 
 
+# TODO remove this
 def get_db_connection():
     return psycopg2.connect(
         dbname=os.getenv("DB_NAME"),
@@ -50,6 +81,7 @@ def get_status():
     return jsonify({"status": status_list})
 
 
+# TODO use psql driver
 @app.route("/jobs/<status>/<db_name>", methods=["GET"])
 def get_jobs(status, db_name):
     # pagination
@@ -100,6 +132,7 @@ def get_jobs(status, db_name):
     )
 
 
+# TODO use psql driver
 @app.route("/jobs/update/", methods=["POST"])
 def update_job_status():
     data = request.get_json()
