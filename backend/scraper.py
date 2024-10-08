@@ -1,13 +1,8 @@
 import json
-import os
 
-import psycopg2
 import requests
 from bs4 import BeautifulSoup as bs
-from dotenv import load_dotenv
 from db import PSQLDriver
-
-load_dotenv()
 
 
 class Scraper:
@@ -20,22 +15,20 @@ class Scraper:
         self.scraped_data_file = f"{self.table_name}_data.txt"
         self.data_file = f"{self.table_name}_data.json"
         self.misc_file = f"{self.table_name}_misc_data.json"
+        self.scraped_data = None
         self.data = {}
         self.misc_data = {}
+
+    def connect(self):
+        self.psql_driver.create_connection()
 
     def scrape_site(self):
         response = requests.get(self.URL)
         if response.status_code == 200:
-            with open(self.scraped_data_file, "w", encoding="utf-8") as fp:
-                fp.write(response.text)
-
-    def get_scraped_data(self):
-        with open(self.scraped_data_file, encoding="utf-8") as fp:
-            content = fp.read()
-        return content
+            self.scraped_data = response.text
 
     def extract(self):
-        content = self.get_scraped_data()
+        content = self.scraped_data
         soup = bs(content, "html.parser")
         posts = soup.find_all("tr", class_="athing comtr")
 
@@ -54,7 +47,7 @@ class Scraper:
             role = "|".join(header.split("|")[1:])
             try:
                 body = comment.find_all("p")[0].text
-            except:
+            except Exception:
                 continue
 
             # author
@@ -104,18 +97,12 @@ class Scraper:
 
     def run(self):
         try:
+            self.connect()
             self.scrape_site()
             self.extract()
             self.push_to_db()
         except Exception as e:
-            print("failed", e)
-
-    def load_initial_data(self):
-        self.psql_driver.drop_all_tables()
-        s = Scraper("https://news.ycombinator.com/item?id=41709301", "oct_24")
-        s.run()
-        s = Scraper("https://news.ycombinator.com/item?id=41425910", "sept_24")
-        s.run()
+            print("Failed", e)
 
 
 def main():

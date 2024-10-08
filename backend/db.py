@@ -66,8 +66,6 @@ class PSQLDriver:
             """
                 INSERT INTO hn_post (table_name, post_link)
                 VALUES (%s, %s)
-                ON CONFLICT (hn_post) DO UPDATE SET 
-                    post_link = EXCLUDED.post_link;
                 """,
             (table_name, URL),
         )
