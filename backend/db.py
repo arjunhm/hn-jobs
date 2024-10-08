@@ -117,8 +117,9 @@ class PSQLDriver:
         self.conn.commit()
 
     def get_list_of_tables(self):
-        self.cur.execute("SELECT table_name FROM hn_post")
-        return [name[0] for name in self.cur.fetchall()]
+        self.cur.execute("""SELECT table_name FROM hn_post;""")
+        names = [name[0] for name in self.cur.fetchall()]
+        return names
 
     def drop_all_tables(self):
         self.cur.execute("""

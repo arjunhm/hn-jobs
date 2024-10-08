@@ -1,8 +1,9 @@
-from flask import Flask, jsonify, request, render_template
-import psycopg2
 import os
-from dotenv import load_dotenv
 
+import psycopg2
+from db import PSQLDriver
+from dotenv import load_dotenv
+from flask import Flask, jsonify, render_template, request
 from scraper import Scraper
 
 load_dotenv()
@@ -30,13 +31,12 @@ def scraper():
     return render_template("scraper.html")
 
 
-def get_db_names():
-    return ["oct_24", "sept_24", "july_2024"]
-
-
 @app.route("/databases", methods=["GET"])
 def get_databases():
-    db_names = get_db_names()
+    p = PSQLDriver()
+    p.create_connection()
+    db_names = p.get_list_of_tables()
+    p.close()
     return jsonify({"databases": db_names})
 
 
