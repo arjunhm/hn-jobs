@@ -15,8 +15,7 @@ class PSQLDriver:
         self.port = os.getenv("DB_PORT")
         self.conn = None
         self.cur = None
-
-    def create_connection(self):
+    def connect(self):
         self.conn = psycopg2.connect(
             dbname=self.dbname,
             user=self.user,
@@ -25,7 +24,8 @@ class PSQLDriver:
             port=self.port,
         )
         self.cur = self.conn.cursor()
-
+        
+    # create tables
     def create_hn_post_table(self):
         self.cur.execute("""
             CREATE TABLE IF NOT EXISTS hn_post (
@@ -61,6 +61,7 @@ class PSQLDriver:
         """)
         self.conn.commit()
 
+    # insert rows
     def insert_hn_post(self, table_name: str, URL: str):
         self.cur.execute(
             """
@@ -114,11 +115,41 @@ class PSQLDriver:
 
         self.conn.commit()
 
+    # get
     def get_list_of_tables(self):
         self.cur.execute("""SELECT table_name FROM hn_post;""")
         names = [name[0] for name in self.cur.fetchall()]
         return names
 
+    def get_job_postings(self, table, status, per_page, offset):
+        self.cur.execute(
+            f"SELECT * FROM {table} WHERE status = %s ORDER BY job_name ASC LIMIT %s OFFSET %s;",
+            (status, per_page, offset),
+        )
+        return self.cur.fetchall()
+
+    def get_row_count(self, table_name, status):
+        self.cur.execute(
+            f"SELECT COUNT(*) FROM {table_name} WHERE status = %s;", (status,)
+        )
+        return self.cur.fetchone()[0]
+
+    # update
+    def update_status(self, table_name, status, job_name):
+        self.cur.execute(
+            f"""
+            UPDATE {table_name} 
+            SET status = %s 
+            WHERE job_name = %s
+        """,
+            (status, job_name),
+        )
+
+        self.conn.commit()
+
+    # delete
+
+    # drop
     def drop_all_tables(self):
         self.cur.execute("""
             DO $$ 

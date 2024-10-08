@@ -18,10 +18,7 @@ class Scraper:
         self.scraped_data = None
         self.data = {}
         self.misc_data = {}
-
-    def connect(self):
-        self.psql_driver.create_connection()
-
+     
     def scrape_site(self):
         response = requests.get(self.URL)
         if response.status_code == 200:
@@ -97,7 +94,7 @@ class Scraper:
 
     def run(self):
         try:
-            self.connect()
+            self.psql_driver.connect()
             self.scrape_site()
             self.extract()
             self.push_to_db()

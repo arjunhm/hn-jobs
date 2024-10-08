@@ -52,8 +52,8 @@
   <h1>Job Listings</h1>
 
   <!-- select db -->
-  <label for="dbFilter">Select Database:</label>
-  <select id="dbFilter" onchange="fetchJobs(1)">
+  <label for="tableFilter">Select Database:</label>
+  <select id="tableFilter" onchange="fetchJobs(1)">
   </select>
 
   <!-- select status -->
@@ -107,7 +107,7 @@
       try {
         const response = await fetch('/tables');
         const data = await response.json();
-        const dbSelect = document.getElementById('dbFilter');
+        const dbSelect = document.getElementById('tableFilter');
         dbSelect.innerHTML = '';
 
         // populate table filter dropdown
@@ -146,9 +146,9 @@
     // get job postings
     async function fetchJobs(page = 1) {
       const status = document.getElementById('statusFilter').value;
-      const database = document.getElementById('dbFilter').value;
+      const table = document.getElementById('tableFilter').value;
 
-      const response = await fetch(`/jobs/${status}/${database}?page=${page}&per_page=10`);
+      const response = await fetch(`/jobs/${status}/${table}?page=${page}&per_page=10`);
       const data = await response.json();
 
       if (Array.isArray(data.jobs)) {
@@ -227,7 +227,7 @@
 
     async function updateJobStatus(jobName) {
       const status = document.getElementById(`status_${jobName}`).value;
-      const database = document.getElementById('dbFilter').value;
+      const table = document.getElementById('tableFilter').value;
 
       const response = await fetch(`/jobs/update/`, {
         method: 'POST',
@@ -236,7 +236,7 @@
         },
         body: JSON.stringify({
           job_name: jobName,
-          db_name: database,
+          table_name: table,
           status: status
         })
       });

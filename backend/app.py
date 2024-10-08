@@ -41,7 +41,6 @@ dictConfig(
 app = Flask(__name__)
 
 
-# TODO remove this
 def get_db_connection():
     return psycopg2.connect(
         dbname=os.getenv("DB_NAME"),
@@ -64,10 +63,7 @@ def scraper():
 
 @app.route("/tables", methods=["GET"])
 def get_databases():
-    p = PSQLDriver()
-    p.create_connection()
-    tables = p.get_list_of_tables()
-    p.close()
+    tables = psql_driver.get_list_of_tables()
     return jsonify({"tables": tables})
 
 
@@ -81,29 +77,15 @@ def get_status():
     return jsonify({"status": status_list})
 
 
-# TODO use psql driver
-@app.route("/jobs/<status>/<db_name>", methods=["GET"])
-def get_jobs(status, db_name):
+@app.route("/jobs/<status>/<table_name>", methods=["GET"])
+def get_jobs(status, table_name):
     # pagination
     page = int(request.args.get("page", 1))
     per_page = int(request.args.get("per_page", 10))
     offset = (page - 1) * per_page
 
-    conn = get_db_connection()
-    cur = conn.cursor()
-
-    cur.execute(
-        f"SELECT * FROM {db_name} WHERE status = %s ORDER BY job_name ASC LIMIT %s OFFSET %s;",
-        (status, per_page, offset),
-    )
-    rows = cur.fetchall()
-
-    # Get total count of jobs for the specified status
-    cur.execute(f"SELECT COUNT(*) FROM {db_name} WHERE status = %s;", (status,))
-    total_count = cur.fetchone()[0]
-
-    cur.close()
-    conn.close()
+    rows = psql_driver.get_job_postings(table_name, status, per_page, offset)
+    total_count = psql_driver.get_row_count(table_name, status)
 
     jobs = []
     for row in rows:
@@ -132,29 +114,15 @@ def get_jobs(status, db_name):
     )
 
 
-# TODO use psql driver
 @app.route("/jobs/update/", methods=["POST"])
 def update_job_status():
     data = request.get_json()
 
-    db_name = data.get("db_name")
+    table_name = data.get("table_name")
     job_name = data.get("job_name")
     new_status = data.get("status")
 
-    conn = get_db_connection()
-    cur = conn.cursor()
-    cur.execute(
-        f"""
-        UPDATE {db_name} 
-        SET status = %s 
-        WHERE job_name = %s
-    """,
-        (new_status, job_name),
-    )
-
-    conn.commit()
-    cur.close()
-    conn.close()
+    psql_driver.update_status(table_name, new_status, job_name)
 
     return jsonify({"message": "Job status updated successfully."}), 200
 
@@ -172,4 +140,6 @@ def scrape_data():
 
 
 if __name__ == "__main__":
+    psql_driver = PSQLDriver()
+    psql_driver.connect()
     app.run(debug=True)
