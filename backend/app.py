@@ -31,13 +31,13 @@ def scraper():
     return render_template("scraper.html")
 
 
-@app.route("/databases", methods=["GET"])
+@app.route("/tables", methods=["GET"])
 def get_databases():
     p = PSQLDriver()
     p.create_connection()
-    db_names = p.get_list_of_tables()
+    tables = p.get_list_of_tables()
     p.close()
-    return jsonify({"databases": db_names})
+    return jsonify({"tables": tables})
 
 
 def get_status_list():

@@ -51,16 +51,17 @@
 
   <h1>Job Listings</h1>
 
-  <!-- Select Database -->
+  <!-- select db -->
   <label for="dbFilter">Select Database:</label>
   <select id="dbFilter" onchange="fetchJobs(1)">
   </select>
 
+  <!-- select status -->
   <label for="statusFilter">Filter by Status:</label>
   <select id="statusFilter" onchange="fetchJobs(1)">
-    <!-- Status options will be populated here dynamically -->
   </select>
 
+  <!-- table -->
   <table id="jobTable">
     <thead>
       <tr>
@@ -74,10 +75,10 @@
       </tr>
     </thead>
     <tbody>
-      <!-- Job rows will be dynamically inserted here -->
     </tbody>
   </table>
 
+  <!-- pagination -->
   <div id="pagination">
     <button id="prevPage" onclick="changePage(-1)" disabled>Previous</button>
     <span>
@@ -88,6 +89,7 @@
   </div>
 
   <br>
+  <!-- add data -->
   <div>
     <a href="/scraper.html">
       Add new data
@@ -95,41 +97,45 @@
   </div>
 
   <script>
+
     let currentPage = 1;
-    let totalPages = 1;  // This will be updated by the server response
+    let totalPages = 1;
     statusOptions = [];
-    async function fetchDatabases() {
+    
+    // get list of job-posting tables
+    async function fetchTables() {
       try {
-        const response = await fetch('/databases');
+        const response = await fetch('/tables');
         const data = await response.json();
         const dbSelect = document.getElementById('dbFilter');
-        dbSelect.innerHTML = ''; // Clear previous options
+        dbSelect.innerHTML = '';
 
-        // Populate the database dropdown using a regular for loop
-        for (let i = 0; i < data.databases.length; i++) {
+        // populate table filter dropdown
+        for (let i = 0; i < data.tables.length; i++) {
           const option = document.createElement('option');
-          option.value = data.databases[i];
-          option.text = data.databases[i];
+          option.value = data.tables[i];
+          option.text = data.tables[i];
           dbSelect.appendChild(option);
         }
       } catch (error) {
-        console.error('Error fetching databases:', error);
+        console.error('Error fetching tables:', error);
       }
     }
 
+    // fetch status list
     async function fetchStatusOptions() {
       try {
         const response = await fetch('/status');
         const data = await response.json();
         const statusSelect = document.getElementById('statusFilter');
-        statusSelect.innerHTML = ''; // Clear previous options
+        statusSelect.innerHTML = '';
         statusOptions = data.status;
 
-        // Populate the filter status dropdown
+        // populate status filter dropdown
         for (const status of data.status) {
           const option = document.createElement('option');
           option.value = status;
-          option.text = status.charAt(0).toUpperCase() + status.slice(1); // Capitalize first letter
+          option.text = status.charAt(0).toUpperCase() + status.slice(1);
           statusSelect.appendChild(option);
         }
       } catch (error) {
@@ -137,6 +143,7 @@
       }
     }
 
+    // get job postings
     async function fetchJobs(page = 1) {
       const status = document.getElementById('statusFilter').value;
       const database = document.getElementById('dbFilter').value;
@@ -146,15 +153,15 @@
 
       if (Array.isArray(data.jobs)) {
         const tbody = document.getElementById('jobTable').getElementsByTagName('tbody')[0];
-        tbody.innerHTML = '';  // Clear previous rows
+        tbody.innerHTML = '';
 
-        // Loop over jobs and insert rows into the table
+        // loop over job and add row
         for (const job of data.jobs) {
           const row = tbody.insertRow();
           const linksHTML = job.links
             .split(' ')
             .map(link => `<a href="${link}" target="_blank">${link}</a>`)
-            .join('<br>'); // Combine all the links with a line break
+            .join('<br>');
           row.innerHTML = `
                         <td>${job.job_name}</td>
                         <td>
@@ -172,16 +179,16 @@
                             <button onclick="updateJobStatus('${job.job_name}')">Update</button>
                         </td>
                     `;
-          populateStatusDropdowns(job); // Populate each status dropdown
+          // populate status for each job
+          populateStatusDropdowns(job);
         }
 
-        // Update pagination controls
+        // set pagination
         currentPage = page;
         totalPages = data.total_pages;
         document.getElementById('totalPages').textContent = `${totalPages}`;
         document.getElementById('currentPage').textContent = `Page ${currentPage}`;
 
-        // Enable or disable pagination buttons based on current page
         document.getElementById('prevPage').disabled = currentPage <= 1;
         document.getElementById('nextPage').disabled = currentPage >= totalPages;
       } else {
@@ -193,13 +200,12 @@
       const statusDropdown = document.getElementById(`status_${job.job_name}`);
       statusDropdown.innerHTML = '';
 
-      // Populate the dropdown with options
       for (let i = 0; i < statusOptions.length; i++) {
         const option = document.createElement('option');
         option.value = statusOptions[i];
-        option.textContent = statusOptions[i].charAt(0).toUpperCase() + statusOptions[i].slice(1); // Capitalize first letter
+        option.textContent = statusOptions[i].charAt(0).toUpperCase() + statusOptions[i].slice(1);
         if (statusOptions[i] === job.status) {
-          option.selected = true; // Set the current status as selected
+          option.selected = true;
         }
         statusDropdown.appendChild(option);
       }
@@ -242,9 +248,9 @@
       }
     }
 
-    // Fetch initial data (databases and status options) on page load
+    // Fetch initial data
     window.onload = async () => {
-      await fetchDatabases();
+      await fetchTables();
       await fetchStatusOptions();
       fetchJobs();
     };
