@@ -28,7 +28,7 @@
       background-color: #f2f2f2;
     }
 
-    button {
+    .button {
       padding: 10px;
       background-color: #4CAF50;
       color: white;
@@ -94,6 +94,8 @@
     <a href="/scraper.html">
       Add new data
     </a>
+    |
+    <button onclick=updateData() style="">Update Data</button>
   </div>
 
   <script>
@@ -101,7 +103,7 @@
     let currentPage = 1;
     let totalPages = 1;
     statusOptions = [];
-    
+
     // get list of job-posting tables
     async function fetchTables() {
       try {
@@ -176,7 +178,7 @@
                             <select id="status_${job.job_name}"></select>
                         </td>
                         <td>
-                            <button onclick="updateJobStatus('${job.job_name}')">Update</button>
+                            <button class="button" onclick="updateJobStatus('${job.job_name}')">Update</button>
                         </td>
                     `;
           // populate status for each job
@@ -222,6 +224,22 @@
       const page = parseInt(document.getElementById('currentPage').value, 10);
       if (page > 0 && page <= totalPages) {
         fetchJobs(page);
+      }
+    }
+
+    async function updateData() {
+
+      const response = await fetch(`/update/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+      });
+
+      if (response.ok) {
+        alert("Update successful");
+      } else {
+        alert('Failed to update data');
       }
     }
 

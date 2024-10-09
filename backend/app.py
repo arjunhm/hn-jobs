@@ -147,6 +147,7 @@ def initialize_tables():
 
 
 # TODO Make this async
+@app.route("/update/", methods=["POST"])
 def update_data():
     data = psql_driver.get_hn_post_table()
     for row in data:
@@ -154,6 +155,7 @@ def update_data():
         table_name = row[0]
         link = row[1]
         Scraper(link, table_name).run()
+    return jsonify({"message": "Updated successfully."}), 200
 
 
 if __name__ == "__main__":
