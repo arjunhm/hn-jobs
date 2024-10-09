@@ -12,13 +12,12 @@ class Scraper:
 
         self.PROFILE_LINK = "https://news.ycombinator.com/user?id="
         self.URL = url
-        self.scraped_data_file = f"{self.table_name}_data.txt"
-        self.data_file = f"{self.table_name}_data.json"
-        self.misc_file = f"{self.table_name}_misc_data.json"
+        self.count = 0
+
         self.scraped_data = None
         self.data = {}
         self.misc_data = {}
-     
+
     def scrape_site(self):
         response = requests.get(self.URL)
         if response.status_code == 200:
@@ -28,6 +27,7 @@ class Scraper:
         content = self.scraped_data
         soup = bs(content, "html.parser")
         posts = soup.find_all("tr", class_="athing comtr")
+        self.count = len(posts)
 
         for i in range(len(posts)):
             post = posts[i]
@@ -39,7 +39,7 @@ class Scraper:
             # content
             comment = post.select_one("div.commtext")
             links = " ".join([a["href"] for a in comment.find_all("a", href=True)])
-            header = comment.find(text=True, recursive=False).strip()
+            header = comment.find(string=True, recursive=False).strip()
             company_name = header.split("|")[0].strip()
             role = "|".join(header.split("|")[1:])
             try:
@@ -74,13 +74,6 @@ class Scraper:
             }
         print(len(self.data))
 
-    def dump(self):
-        with open(self.data_file, "w") as fp:
-            json.dump(self.data, fp, indent=2)
-
-        with open(self.misc_file, "w") as fp:
-            json.dump(self.misc_data, fp, indent=2)
-
     def push_to_db(self):
         self.psql_driver.create_job_listing_table(self.table_name)
 
@@ -88,7 +81,7 @@ class Scraper:
             self.psql_driver.insert_job_listing(self.table_name, job, data)
 
         self.psql_driver.create_hn_post_table()
-        self.psql_driver.insert_hn_post(self.table_name, self.URL)
+        self.psql_driver.insert_hn_post(self.table_name, self.URL, self.count)
 
         self.psql_driver.close()
 

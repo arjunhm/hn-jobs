@@ -1,6 +1,7 @@
+import logging
 import os
-
 from logging.config import dictConfig
+
 import psycopg2
 from db import PSQLDriver
 from dotenv import load_dotenv
@@ -18,7 +19,7 @@ dictConfig(
         "version": 1,
         "formatters": {
             "default": {
-                "format": "%(asctime)s - %(module)s - %(levelname)s - %(message)s",
+                "format": "%(asctime)s - %(module)s - %(levelname)s - %(funcName)s - %(message)s",
             },
         },
         "handlers": {
@@ -39,6 +40,7 @@ dictConfig(
 )
 
 app = Flask(__name__)
+logger = logging.getLogger(__name__)
 
 
 def get_db_connection():
@@ -137,6 +139,21 @@ def scrape_data():
     scraper.run()
 
     return jsonify({"message": "Scraping initiated successfully."}), 200
+
+
+def initialize_tables():
+    psql_driver.create_hn_post_table()
+    psql_driver.create_company_table()
+
+
+# TODO Make this async
+def update_data():
+    data = psql_driver.get_hn_post_table()
+    for row in data:
+        print(row)
+        table_name = row[0]
+        link = row[1]
+        Scraper(link, table_name).run()
 
 
 if __name__ == "__main__":
