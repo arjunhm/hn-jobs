@@ -1,7 +1,7 @@
 ## Installation
 
 Run `pip install -r requirements.txt`.  
-Uses Postgres for backend.  
+Uses [Postgres](https://www.postgresql.org/download/) for backend.  
 
 ## Configuration
 
