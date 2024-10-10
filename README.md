@@ -1,11 +1,11 @@
 ## Installation
 
-Run `pip install -r requirements.txt`.  
-Uses [Postgres](https://www.postgresql.org/download/) for backend.  
+Run `pip install -r requirements.txt`.
+Uses [Postgres](https://www.postgresql.org/download/) for backend.
 
 ## Configuration
 
-Create `.env` inside `backend/`  
+Create `.env` inside `backend/`
 
 ```
 DB_NAME = "my-db"
@@ -17,6 +17,9 @@ DB_PORT = "5432"
 
 ## Running the app
 
-`cd backend/`  
+`cd backend/`
 `python app.py`
+
+## Adding data
+Go to `add new data`, enter URL and table name (format: `<month>_<year>`)  
 
