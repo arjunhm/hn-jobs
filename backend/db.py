@@ -164,13 +164,23 @@ class PSQLDriver:
             logger.error(e)
             return []
 
-    def get_job_postings(self, table, status, per_page, offset):
+    def get_job_postings(self, table, status, search, per_page, offset):
         try:
-            self.cur.execute(
-                f"SELECT * FROM {table} WHERE status = %s ORDER BY job_name ASC LIMIT %s OFFSET %s;",
-                (status, per_page, offset),
-            )
+            query = f"""SELECT * FROM {table} WHERE status = %s"""
+            params = [status]
+
+            if search:
+                query += """ AND (body ILIKE %s OR role ILIKE %s)"""
+                params.append(f"%{search}%")
+                params.append(f"%{search}%")
+
+            query += """ ORDER BY job_name ASC LIMIT %s OFFSET %s;"""
+            params.append(per_page)
+            params.append(offset)
+
+            self.cur.execute(query, params)
             return self.cur.fetchall()
+
         except Exception as e:
             logger.error(e)
             return []

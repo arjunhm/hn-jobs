@@ -85,8 +85,9 @@ def get_jobs(status, table_name):
     page = int(request.args.get("page", 1))
     per_page = int(request.args.get("per_page", 10))
     offset = (page - 1) * per_page
+    search = request.args.get("search")
 
-    rows = psql_driver.get_job_postings(table_name, status, per_page, offset)
+    rows = psql_driver.get_job_postings(table_name, status, search, per_page, offset)
     total_count = psql_driver.get_row_count(table_name, status)
 
     jobs = []

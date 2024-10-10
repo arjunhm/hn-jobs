@@ -53,13 +53,19 @@
 
   <!-- select db -->
   <label for="tableFilter">Select Database:</label>
-  <select id="tableFilter" onchange="fetchJobs(1)">
+  <select id="tableFilter" onchange="searchJobs(1)">
   </select>
 
   <!-- select status -->
   <label for="statusFilter">Filter by Status:</label>
-  <select id="statusFilter" onchange="fetchJobs(1)">
+  <select id="statusFilter" onchange="searchJobs(1)">
   </select>
+
+  <!-- search -->
+  <label for="searchField">Search:</label>
+  <input type="text" id="searchField" placeholder="Enter job name or description...">
+  <button id="searchButton" onclick="searchJobs()">Search</button>
+
 
   <!-- table -->
   <table id="jobTable">
@@ -145,19 +151,20 @@
       }
     }
 
-    // get job postings
-    async function fetchJobs(page = 1) {
+    // search jobs
+    async function searchJobs(page = 1) {
+      const search = document.getElementById('searchField').value.trim();
       const status = document.getElementById('statusFilter').value;
       const table = document.getElementById('tableFilter').value;
 
-      const response = await fetch(`/jobs/${status}/${table}?page=${page}&per_page=10`);
+      // Fetch jobs with the current search term and page number
+      const response = await fetch(`/jobs/${status}/${table}?page=${page}&per_page=10&search=${search}`);
       const data = await response.json();
 
       if (Array.isArray(data.jobs)) {
         const tbody = document.getElementById('jobTable').getElementsByTagName('tbody')[0];
         tbody.innerHTML = '';
 
-        // loop over job and add row
         for (const job of data.jobs) {
           const row = tbody.insertRow();
           const linksHTML = job.links
@@ -165,38 +172,37 @@
             .map(link => `<a href="${link}" target="_blank">${link}</a>`)
             .join('<br>');
           row.innerHTML = `
-                        <td>${job.job_name}</td>
-                        <td>
-                          <a href="${job.author_link}" target="_blank">${job.author_name}</a>
-                          |
-                          <a href="${job.post_link}" target="_blank">Link</a>
-                          </td>
-                        <td>${job.role}</td>
-                        <td>${job.body}</td>
-                        <td>${linksHTML}</td>
-                        <td>
-                            <select id="status_${job.job_name}"></select>
-                        </td>
-                        <td>
-                            <button class="button" onclick="updateJobStatus('${job.job_name}')">Update</button>
-                        </td>
-                    `;
-          // populate status for each job
+                <td>${job.job_name}</td>
+                <td>
+                    <a href="${job.author_link}" target="_blank">${job.author_name}</a>
+                    |
+                    <a href="${job.post_link}" target="_blank">Link</a>
+                </td>
+                <td>${job.role}</td>
+                <td>${job.body}</td>
+                <td>${linksHTML}</td>
+                <td>
+                    <select id="status_${job.job_name}"></select>
+                </td>
+                <td>
+                    <button class="button" onclick="updateJobStatus('${job.job_name}')">Update</button>
+                </td>
+            `;
           populateStatusDropdowns(job);
         }
 
-        // set pagination
-        currentPage = page;
+        // Update pagination info
+        currentPage = page; // Update current page
         totalPages = data.total_pages;
         document.getElementById('totalPages').textContent = `${totalPages}`;
-        document.getElementById('currentPage').textContent = `Page ${currentPage}`;
-
-        document.getElementById('prevPage').disabled = currentPage <= 1;
-        document.getElementById('nextPage').disabled = currentPage >= totalPages;
+        document.getElementById('currentPage').value = `${currentPage}`;
+        document.getElementById('prevPage').disabled = currentPage <= 1; // Disable previous button if on first page
+        document.getElementById('nextPage').disabled = currentPage >= totalPages; // Disable next button if on last page
       } else {
         console.error('Expected jobs to be an array, but got:', data.jobs);
       }
     }
+
 
     function populateStatusDropdowns(job) {
       const statusDropdown = document.getElementById(`status_${job.job_name}`);
@@ -215,15 +221,21 @@
 
     function changePage(direction) {
       const newPage = currentPage + direction;
+      const search = document.getElementById('searchField').value.trim();
+      const status = document.getElementById('statusFilter').value;
+      const table = document.getElementById('tableFilter').value;
+
+      // Check if the new page is within bounds
       if (newPage > 0 && newPage <= totalPages) {
-        fetchJobs(newPage);
+        searchJobs(newPage, status, table, search);
       }
     }
+
 
     function GoToPage() {
       const page = parseInt(document.getElementById('currentPage').value, 10);
       if (page > 0 && page <= totalPages) {
-        fetchJobs(page);
+        searchJobs(page);
       }
     }
 
@@ -270,7 +282,7 @@
     window.onload = async () => {
       await fetchTables();
       await fetchStatusOptions();
-      fetchJobs();
+      searchJobs();
     };
   </script>
 
