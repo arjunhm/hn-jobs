@@ -64,7 +64,6 @@ def scraper():
 @app.route("/tables", methods=["GET"])
 def get_tables():
     tables = psql_driver.get_list_of_tables()
-    print(f"{tables=}")
     return jsonify({"tables": tables})
 
 
@@ -85,8 +84,11 @@ def get_jobs(status, table_name):
     per_page = int(request.args.get("per_page", 10))
     offset = (page - 1) * per_page
     search = request.args.get("search")
+    tags = request.args.get("tags")
 
-    rows = psql_driver.get_job_postings(table_name, status, search, per_page, offset)
+    rows = psql_driver.get_job_postings(
+        table_name, status, search, tags, per_page, offset
+    )
     total_count = psql_driver.get_row_count(table_name, status)
 
     jobs = []

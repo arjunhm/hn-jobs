@@ -164,8 +164,8 @@ class PSQLDriver:
             logger.error(e)
             return []
 
-    def get_job_postings(self, table, status, search, per_page, offset):
-        logger.info(f"search={search}")
+    def get_job_postings(self, table, status, search, tags, per_page, offset):
+        logger.info(f"search={search} | tags={tags}")
         try:
             query = f"""SELECT * FROM {table} WHERE status = %s"""
             params = [status]
@@ -174,6 +174,9 @@ class PSQLDriver:
                 query += """ AND (body ILIKE %s OR role ILIKE %s)"""
                 params.append(f"%{search}%")
                 params.append(f"%{search}%")
+            if tags:
+                query += """ AND (body ~* %s)"""
+                params.append(rf"\m{tags}\M")
 
             query += """ ORDER BY job_name ASC LIMIT %s OFFSET %s;"""
             params.append(per_page)

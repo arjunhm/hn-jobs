@@ -63,9 +63,15 @@
 
   <!-- search -->
   <label for="searchField">Search:</label>
-  <input type="text" id="searchField" placeholder="Enter job name or description...">
+  <input type="text" id="searchField" placeholder="Enter role or description...">
   <button id="searchButton" onclick="searchJobs()">Search</button>
 
+  <!-- tags -->
+  <label for="tagsField">Tags:</label>
+  <input type="text" id="tagsField" placeholder="Enter tags...">
+  <button id="tagsButton" onclick="searchJobs()">Search</button>
+
+  <br><br>
 
   <!-- table -->
   <table id="jobTable">
@@ -154,11 +160,12 @@
     // search jobs
     async function searchJobs(page = 1) {
       const search = document.getElementById('searchField').value.trim();
+      const tags = document.getElementById('tagsField').value.trim();
       const status = document.getElementById('statusFilter').value;
       const table = document.getElementById('tableFilter').value;
 
       // Fetch jobs with the current search term and page number
-      const response = await fetch(`/jobs/${status}/${table}?page=${page}&per_page=10&search=${search}`);
+      const response = await fetch(`/jobs/${status}/${table}?page=${page}&per_page=10&search=${search}&tags=${tags}`);
       const data = await response.json();
 
       if (Array.isArray(data.jobs)) {
@@ -221,13 +228,9 @@
 
     function changePage(direction) {
       const newPage = currentPage + direction;
-      const search = document.getElementById('searchField').value.trim();
-      const status = document.getElementById('statusFilter').value;
-      const table = document.getElementById('tableFilter').value;
 
-      // Check if the new page is within bounds
       if (newPage > 0 && newPage <= totalPages) {
-        searchJobs(newPage, status, table, search);
+        searchJobs(newPage);
       }
     }
 
