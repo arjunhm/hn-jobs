@@ -64,7 +64,7 @@ def scraper():
 
 
 @app.route("/tables", methods=["GET"])
-def get_databases():
+def get_tables():
     tables = psql_driver.get_list_of_tables()
     return jsonify({"tables": tables})
 
@@ -162,4 +162,5 @@ def update_data():
 if __name__ == "__main__":
     psql_driver = PSQLDriver()
     psql_driver.connect()
+    psql_driver.create_hn_post_table()
     app.run(debug=True)
