@@ -52,19 +52,20 @@
   <h1>Job Listings</h1>
 
   <!-- select db -->
-  <label for="tableFilter">Select Database:</label>
+  <label for="tableFilter">Database:</label>
   <select id="tableFilter" onchange="searchJobs(1)">
   </select>
 
   <!-- select status -->
-  <label for="statusFilter">Filter by Status:</label>
+  <label for="statusFilter">Status:</label>
   <select id="statusFilter" onchange="searchJobs(1)">
   </select>
+
+  <br><br>
 
   <!-- search -->
   <label for="searchField">Search:</label>
   <input type="text" id="searchField" placeholder="Enter role or description...">
-  <button id="searchButton" onclick="searchJobs()">Search</button>
 
   <!-- tags -->
   <label for="tagsField">Tags:</label>
@@ -107,7 +108,7 @@
       Add new data
     </a>
     |
-    <button onclick=updateData() style="">Update Data</button>
+    <button onclick=updateData()>Update Data</button>
   </div>
 
   <script>
