@@ -27,8 +27,6 @@ dictConfig(
                 "class": "logging.handlers.RotatingFileHandler",
                 "formatter": "default",
                 "filename": "log/app.log",
-                "maxBytes": 10000,
-                "backupCount": 3,
                 "level": "INFO",
             },
         },
@@ -66,6 +64,7 @@ def scraper():
 @app.route("/tables", methods=["GET"])
 def get_tables():
     tables = psql_driver.get_list_of_tables()
+    print(f"{tables=}")
     return jsonify({"tables": tables})
 
 

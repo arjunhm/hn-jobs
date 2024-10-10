@@ -165,6 +165,7 @@ class PSQLDriver:
             return []
 
     def get_job_postings(self, table, status, search, per_page, offset):
+        logger.info(f"search={search}")
         try:
             query = f"""SELECT * FROM {table} WHERE status = %s"""
             params = [status]
@@ -240,6 +241,24 @@ class PSQLDriver:
                 END $$;
             """)
             self.conn.commit()
+        except Exception as e:
+            logger.error(e)
+
+    # misc
+    def skip_non_us_data(self, table_name):
+        try:
+            locations = os.getenv("SKIP_LOCATIONS", [])
+            for location in locations:
+                logger.info(f"Skipping location={location}")
+                self.cur.execute(
+                    f"""
+                    UPDATE {table_name} 
+                    SET status = %s 
+                    WHERE role ILIKE %s
+                """,
+                    ("skipped", f"%{location}%"),
+                )
+                self.conn.commit()
         except Exception as e:
             logger.error(e)
 

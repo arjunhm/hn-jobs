@@ -13,6 +13,7 @@ DB_USER = "postgres"
 DB_PASSWORD = "root"
 DB_HOST = "localhost"
 DB_PORT = "5432"
+SKIP_LOCATIONS = ["berlin", "amsterdam", "london", "europe"] -- list of locations to be skipped
 ```
 
 ## Running the app

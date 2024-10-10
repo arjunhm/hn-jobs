@@ -79,6 +79,7 @@ class Scraper:
 
         for job, data in self.data.items():
             self.psql_driver.insert_job_listing(self.table_name, job, data)
+        self.psql_driver.skip_non_us_data(self.table_name)
 
         self.psql_driver.create_hn_post_table()
         self.psql_driver.insert_hn_post(self.table_name, self.URL, self.count)
