@@ -167,37 +167,46 @@ class PSQLDriver:
     def get_job_postings(self, table, status, search, tags, per_page, offset):
         logger.info(f"search={search} | tags={tags}")
         try:
-            query = f"""SELECT * FROM {table} WHERE status = %s"""
-            params = [status]
+            query = f"""SELECT * FROM {table}"""
+            params = []
+
+            if status != "all":
+                query += """ WHERE status = %s"""
+                params.append(status)
 
             if search:
-                query += """ AND (body ILIKE %s OR role ILIKE %s)"""
+                if len(params) == 0:
+                    query += " WHERE "
+                else:
+                    query += " AND "
+                query += """(body ILIKE %s OR role ILIKE %s)"""
                 params.append(f"%{search}%")
                 params.append(f"%{search}%")
+
             if tags:
-                query += """ AND (body ~* %s)"""
+                if len(params) == 0:
+                    query += " WHERE "
+                else:
+                    query += " AND "
+                query += """(body ~* %s)"""
                 params.append(rf"\m{tags}\M")
 
+            count_query = query.replace("SELECT *", "SELECT COUNT(*)")
             query += """ ORDER BY job_name ASC LIMIT %s OFFSET %s;"""
+
             params.append(per_page)
             params.append(offset)
 
             self.cur.execute(query, params)
-            return self.cur.fetchall()
+            data = self.cur.fetchall()
+            self.cur.execute(count_query, params[:-2])
+            count = self.cur.fetchone()[0]
+
+            return data, count
 
         except Exception as e:
             logger.error(e)
             return []
-
-    def get_row_count(self, table_name, status):
-        try:
-            self.cur.execute(
-                f"SELECT COUNT(*) FROM {table_name} WHERE status = %s;", (status,)
-            )
-            return self.cur.fetchone()[0]
-        except Exception as e:
-            logger.error(e)
-            return 0
 
     # update
     def update_status(self, table_name, status, job_name):

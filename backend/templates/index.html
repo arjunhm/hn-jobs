@@ -68,7 +68,7 @@
 
   <!-- tags -->
   <label for="tagsField">Tags:</label>
-  <input type="text" id="tagsField" placeholder="Enter tags...">
+  <input type="text" id="tagsField" placeholder="Matches exact word">
   <button id="tagsButton" onclick="searchJobs()">Search</button>
 
   <br><br>
@@ -216,6 +216,9 @@
       statusDropdown.innerHTML = '';
 
       for (let i = 0; i < statusOptions.length; i++) {
+        if (statusOptions[i] == "all") {
+            continue;
+        }
         const option = document.createElement('option');
         option.value = statusOptions[i];
         option.textContent = statusOptions[i].charAt(0).toUpperCase() + statusOptions[i].slice(1);

@@ -68,7 +68,7 @@ def get_tables():
 
 
 def get_status_list():
-    return ["not applied", "applied", "bookmarked", "manual review", "skipped"]
+    return ["all", "not applied", "applied", "bookmarked", "manual review", "skipped"]
 
 
 @app.route("/status", methods=["GET"])
@@ -86,10 +86,10 @@ def get_jobs(status, table_name):
     search = request.args.get("search")
     tags = request.args.get("tags")
 
-    rows = psql_driver.get_job_postings(
+    rows, total_count = psql_driver.get_job_postings(
         table_name, status, search, tags, per_page, offset
     )
-    total_count = psql_driver.get_row_count(table_name, status)
+    # total_count = psql_driver.get_row_count(table_name, status)
 
     jobs = []
     for row in rows:
