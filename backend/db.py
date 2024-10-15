@@ -2,6 +2,7 @@ import os
 import datetime
 import psycopg2
 from dotenv import load_dotenv
+import json
 
 import logging
 
@@ -97,16 +98,16 @@ class PSQLDriver:
         except Exception as e:
             logger.error(e)
 
-    def insert_company(self, name: str, link: str, visa: str):
+    def insert_company(self, name: str):
         try:
             self.cur.execute(
                 """
-                    INSERT INTO company (company, link, visa)
-                    VALUES (%s, %s, %s)
+                    INSERT INTO company (company)
+                    VALUES (%s)
                     ON CONFLICT (company) DO UPDATE SET 
                         link = EXCLUDED.link;
                     """,
-                (name, link, visa),
+                (name,),
             )
             self.conn.commit()
         except Exception as e:
@@ -129,7 +130,7 @@ class PSQLDriver:
                         post_link = EXCLUDED.post_link,
                         links = EXCLUDED.links
                     WHERE {table_name}.manual_fix = FALSE;
-                    """,  # ignore status in update
+                    """,  # ignore status
                 (
                     job,
                     data["author"]["name"],
@@ -259,13 +260,13 @@ class PSQLDriver:
     # misc
     def skip_non_us_data(self, table_name):
         try:
-            locations = os.getenv("SKIP_LOCATIONS", [])
+            locations = json.loads(os.environ.get("SKIP_LOCATIONS", []))
             for location in locations:
                 logger.info(f"Skipping location={location}")
                 self.cur.execute(
                     f"""
-                    UPDATE {table_name} 
-                    SET status = %s 
+                    UPDATE {table_name}
+                    SET status = %s
                     WHERE role ILIKE %s
                 """,
                     ("skipped", f"%{location}%"),

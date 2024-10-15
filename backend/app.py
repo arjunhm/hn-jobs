@@ -163,5 +163,8 @@ def update_data():
 if __name__ == "__main__":
     psql_driver = PSQLDriver()
     psql_driver.connect()
+
     psql_driver.create_hn_post_table()
+    psql_driver.create_company_table()
+
     app.run(debug=True)

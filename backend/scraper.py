@@ -56,7 +56,9 @@ class Scraper:
                 continue
 
             try:
-                body = comment.find_all("p")[0].text
+                body = comment.find_all("p")
+                if len(body) > 0:
+                    body = body[0].text
             except Exception as e:
                 logger.error(f"body: {e}")
 
