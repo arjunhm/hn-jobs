@@ -273,6 +273,23 @@ class PSQLDriver:
             logger.error(e)
             return []
 
+    def get_company_jobs(self, name: str):
+        result = []
+        try:
+            tables = self.get_list_of_tables()
+            for table in tables:
+                query = f"""
+                    SELECT * FROM {table}
+                    WHERE job_name = %s
+                """
+                params = [name]
+                self.cur.execute(query, params)
+                data = self.cur.fetchall()
+                result.append(data)
+        except Exception as e:
+            logger.error(e)
+        return result
+
     # misc
 
     def get_list_of_tables(self):
