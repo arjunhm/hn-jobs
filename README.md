@@ -18,7 +18,7 @@ SKIP_LOCATIONS = ["berlin", "amsterdam", "london", "europe"] -- list of location
 
 ## Running the app
 
-`cd backend/`
+`cd backend/`  
 For initial setup (optional): `python setup.py`  
 To run flask: `python app.py`  
 
