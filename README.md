@@ -24,7 +24,3 @@ To run flask: `python app.py`
 Go to http://127.0.0.1:5000/  
 
 
-
-## Adding data
-Go to `add new data`, enter URL and table name (format: `<month>_<year>`)  
-
