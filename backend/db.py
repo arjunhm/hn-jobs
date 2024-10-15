@@ -12,6 +12,7 @@ load_dotenv()
 
 
 class PSQLDriver:
+    # core
     def __init__(self):
         self.dbname = os.getenv("DB_NAME")
         self.user = os.getenv("DB_USER")
@@ -34,7 +35,15 @@ class PSQLDriver:
         except Exception as e:
             logger.error(e)
 
-    # create tables
+    def close(self):
+        try:
+            self.conn.commit()
+            self.cur.close()
+            self.conn.close()
+        except Exception as e:
+            logger.error(e)
+
+    # hn post
     def create_hn_post_table(self):
         try:
             self.cur.execute("""
@@ -49,39 +58,6 @@ class PSQLDriver:
         except Exception as e:
             logger.error(e)
 
-    def create_company_table(self):
-        try:
-            self.cur.execute("""
-                CREATE TABLE IF NOT EXISTS company (
-                    company TEXT PRIMARY KEY,
-                    link TEXT,
-                    visa TEXT
-                )
-            """)
-            self.conn.commit()
-        except Exception as e:
-            logger.error(e)
-
-    def create_job_listing_table(self, table_name: str):
-        try:
-            self.cur.execute(f"""
-                CREATE TABLE IF NOT EXISTS {table_name} (
-                    job_name TEXT PRIMARY KEY,
-                    author_name TEXT,
-                    author_link TEXT,
-                    role TEXT,
-                    body TEXT,
-                    status TEXT,
-                    post_link TEXT,
-                    links TEXT,
-                    manual_fix BOOLEAN DEFAULT FALSE
-                )
-            """)
-            self.conn.commit()
-        except Exception as e:
-            logger.error(e)
-
-    # insert rows
     def insert_hn_post(self, table_name: str, URL: str, count: int):
         try:
             self.cur.execute(
@@ -98,17 +74,45 @@ class PSQLDriver:
         except Exception as e:
             logger.error(e)
 
-    def insert_company(self, name: str):
+    def get_hn_post_table(self):
+        try:
+            self.cur.execute("""SELECT * FROM hn_post;""")
+            return self.cur.fetchall()
+        except Exception as e:
+            logger.error(e)
+            return []
+
+    def update_hn_post(self, table_name: str, count: int):
         try:
             self.cur.execute(
                 """
-                    INSERT INTO company (company)
-                    VALUES (%s)
-                    ON CONFLICT (company) DO UPDATE SET 
-                        link = EXCLUDED.link;
-                    """,
-                (name,),
+                UPDATE hn_post
+                SET count = %s
+                SET updated_at = %s
+                WHERE table_name = %s
+                """,
+                (count, datetime.datetime.now(), table_name),
             )
+            self.conn.commit()
+        except Exception as e:
+            logger.error(e)
+
+    # job listing
+    def create_job_listing_table(self, table_name: str):
+        try:
+            self.cur.execute(f"""
+                CREATE TABLE IF NOT EXISTS {table_name} (
+                    job_name TEXT PRIMARY KEY,
+                    author_name TEXT,
+                    author_link TEXT,
+                    role TEXT,
+                    body TEXT,
+                    status TEXT,
+                    post_link TEXT,
+                    links TEXT,
+                    manual_fix BOOLEAN DEFAULT FALSE
+                )
+            """)
             self.conn.commit()
         except Exception as e:
             logger.error(e)
@@ -146,24 +150,6 @@ class PSQLDriver:
             self.conn.commit()
         except Exception as e:
             logger.error(e)
-
-    # get
-    def get_list_of_tables(self):
-        try:
-            self.cur.execute("""SELECT table_name FROM hn_post;""")
-            names = [name[0] for name in self.cur.fetchall()]
-            return names
-        except Exception as e:
-            logger.error(e)
-            return []
-
-    def get_hn_post_table(self):
-        try:
-            self.cur.execute("""SELECT * FROM hn_post;""")
-            return self.cur.fetchall()
-        except Exception as e:
-            logger.error(e)
-            return []
 
     def get_job_postings(self, table, status, search, tags, per_page, offset):
         logger.info(f"search={search} | tags={tags}")
@@ -209,7 +195,6 @@ class PSQLDriver:
             logger.error(e)
             return []
 
-    # update
     def update_status(self, table_name, status, job_name):
         try:
             self.cur.execute(
@@ -224,40 +209,6 @@ class PSQLDriver:
         except Exception as e:
             logger.error(e)
 
-    def update_hn_post(self, table_name: str, count: int):
-        try:
-            self.cur.execute(
-                """
-                UPDATE hn_post
-                SET count = %s
-                SET updated_at = %s
-                WHERE table_name = %s
-                """,
-                (count, datetime.datetime.now(), table_name),
-            )
-            self.conn.commit()
-        except Exception as e:
-            logger.error(e)
-
-    # drop
-    def drop_all_tables(self):
-        try:
-            self.cur.execute("""
-                DO $$ 
-                DECLARE 
-                    r RECORD;
-                BEGIN 
-                    FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public') 
-                    LOOP 
-                        EXECUTE 'DROP TABLE IF EXISTS ' || quote_ident(r.tablename) || ' CASCADE';
-                    END LOOP; 
-                END $$;
-            """)
-            self.conn.commit()
-        except Exception as e:
-            logger.error(e)
-
-    # misc
     def skip_non_us_data(self, table_name):
         try:
             locations = json.loads(os.environ.get("SKIP_LOCATIONS", []))
@@ -275,11 +226,68 @@ class PSQLDriver:
         except Exception as e:
             logger.error(e)
 
-    def close(self):
+    # company
+    def create_company_table(self):
         try:
+            self.cur.execute("""
+                CREATE TABLE IF NOT EXISTS company (
+                    company TEXT PRIMARY KEY,
+                    link TEXT,
+                    visa TEXT
+                )
+            """)
             self.conn.commit()
-            self.cur.close()
-            self.conn.close()
+        except Exception as e:
+            logger.error(e)
+
+    def insert_company(self, name: str):
+        try:
+            self.cur.execute(
+                """
+                    INSERT INTO company (company)
+                    VALUES (%s)
+                    ON CONFLICT (company) DO UPDATE SET 
+                        link = EXCLUDED.link;
+                    """,
+                (name,),
+            )
+            self.conn.commit()
+        except Exception as e:
+            logger.error(e)
+
+    def get_companies(self):
+        try:
+            self.cur.execute("""SELECT * FROM company;""")
+            return self.cur.fetchall()
+        except Exception as e:
+            logger.error(e)
+            return []
+
+    # misc
+
+    def get_list_of_tables(self):
+        try:
+            self.cur.execute("""SELECT table_name FROM hn_post;""")
+            names = [name[0] for name in self.cur.fetchall()]
+            return names
+        except Exception as e:
+            logger.error(e)
+            return []
+
+    def drop_all_tables(self):
+        try:
+            self.cur.execute("""
+                DO $$ 
+                DECLARE 
+                    r RECORD;
+                BEGIN 
+                    FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public') 
+                    LOOP 
+                        EXECUTE 'DROP TABLE IF EXISTS ' || quote_ident(r.tablename) || ' CASCADE';
+                    END LOOP; 
+                END $$;
+            """)
+            self.conn.commit()
         except Exception as e:
             logger.error(e)
 
