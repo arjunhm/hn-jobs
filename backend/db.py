@@ -255,10 +255,20 @@ class PSQLDriver:
         except Exception as e:
             logger.error(e)
 
-    def get_companies(self):
+    def get_companies(self, per_page: int, offset: int):
         try:
-            self.cur.execute("""SELECT * FROM company;""")
-            return self.cur.fetchall()
+            self.cur.execute(
+                """
+                SELECT * FROM company
+                ORDER BY company ASC LIMIT %s OFFSET %s;""",
+                (per_page, offset),
+            )
+            data = self.cur.fetchall()
+
+            self.cur.execute("""SELECT COUNT(*) FROM company;""")
+            count = self.cur.fetchone()[0]
+
+            return data, count
         except Exception as e:
             logger.error(e)
             return []

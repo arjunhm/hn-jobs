@@ -51,6 +51,9 @@ def get_db_connection():
     )
 
 
+# Templates
+
+
 @app.route("/")
 def index():
     return render_template("index.html")
@@ -61,14 +64,25 @@ def scraper():
     return render_template("scraper.html")
 
 
+@app.route("/company.html")
+def company():
+    return render_template("company.html")
+
+
 @app.route("/tables", methods=["GET"])
 def get_tables():
     tables = psql_driver.get_list_of_tables()
-    return jsonify({"tables": tables})
+    return jsonify({"data": tables})
+
+
+# Helper
 
 
 def get_status_list():
     return ["all", "not applied", "applied", "bookmarked", "manual review", "skipped"]
+
+
+# Views
 
 
 @app.route("/status", methods=["GET"])
@@ -89,7 +103,6 @@ def get_jobs(status, table_name):
     rows, total_count = psql_driver.get_job_postings(
         table_name, status, search, tags, per_page, offset
     )
-    # total_count = psql_driver.get_row_count(table_name, status)
 
     jobs = []
     for row in rows:
@@ -106,12 +119,10 @@ def get_jobs(status, table_name):
             }
         )
 
-    # Calculate total pages
-    total_pages = (total_count + per_page - 1) // per_page  # Ceiling division
-
+    total_pages = (total_count + per_page - 1) // per_page
     return jsonify(
         {
-            "jobs": jobs,
+            "data": jobs,
             "total_pages": total_pages,
             "current_page": page,
         }
@@ -143,12 +154,33 @@ def scrape_data():
     return jsonify({"message": "Scraping initiated successfully."}), 200
 
 
+@app.route("/companies/", methods=["GET"])
+def get_companies():
+    # pagination
+    page = int(request.args.get("page", 1))
+    per_page = int(request.args.get("per_page", 30))
+    offset = (page - 1) * per_page
+
+    rows, total_count = psql_driver.get_companies(per_page, offset)
+    companies = []
+    for row in rows:
+        companies.append({"company": row[0], "link": row[1], "visa": row[2]})
+
+    total_pages = (total_count + per_page - 1) // per_page
+    return jsonify(
+        {
+            "data": companies,
+            "total_pages": total_pages,
+            "current_page": page,
+        }
+    )
+
+
 def initialize_tables():
     psql_driver.create_hn_post_table()
     psql_driver.create_company_table()
 
 
-# TODO Make this async
 @app.route("/update/", methods=["POST"])
 def update_data():
     data = psql_driver.get_hn_post_table()
