@@ -9,6 +9,11 @@
 </head>
 
 <body>
+  <div>
+    <a href="/">
+      Back to home
+    </a>
+  </div>
   <h1>Company List</h1>
   <table id="companyTable">
     <thead>
@@ -16,6 +21,7 @@
         <th>Company</th>
         <th>Link</th>
         <th>Visa</th>
+        <th>Actions</th>
       </tr>
     </thead>
     <tbody>
@@ -30,8 +36,30 @@
       Page <input id="currentPage" type="text" value="1" size="2"> out of <span id="totalPages"></span>
     </span>
     <button id="nextPage" onclick="changePage(1)" disabled>Next</button>
-    <button id="goToPageButton" onclick="GoToPage()">Go To Page</button>
+    <button id="goToPageButton" onclick="goToPage()">Go To Page</button>
   </div>
+
+  <div id="jobModal" class="modal">
+    <div class="modal-content">
+      <span class="close-button" onclick="closeModal()">&times;</span>
+      <h2>Job Postings</h2>
+      <table id="jobPostingsTable">
+        <thead>
+          <tr>
+            <th>Job Name</th>
+            <th>Author</th>
+            <th>Role</th>
+            <th>Details</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Job postings data will be populated here -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
 
   <script src="{{ url_for('static', filename='js/company.js') }}"></script>
 </body>

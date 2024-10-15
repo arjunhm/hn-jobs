@@ -176,6 +176,33 @@ def get_companies():
     )
 
 
+@app.route("/company/jobs/", methods=["GET"])
+def get_company_jobs():
+    name = request.args.get("company")
+    if name is None:
+        return jsonify(None)
+
+    rows = psql_driver.get_company_jobs(name)
+    jobs = []
+    for row in rows:
+        if len(row) > 0:
+            row = row[0]
+            jobs.append(
+                {
+                    "job_name": row[0],
+                    "author_name": row[1],
+                    "author_link": row[2],
+                    "role": row[3],
+                    "body": row[4],
+                    "status": row[5],
+                    "post_link": row[6],
+                    "links": row[7],
+                }
+            )
+
+    return jsonify({"data": jobs})
+
+
 def initialize_tables():
     psql_driver.create_hn_post_table()
     psql_driver.create_company_table()

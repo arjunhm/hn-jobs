@@ -111,13 +111,13 @@ async function searchJobs(page = 1) {
 
     // Update pagination info
     currentPage = page; // Update current page
-    totalPages = data.total_pages;
+    totalPages = json_response.total_pages;
     document.getElementById('totalPages').textContent = `${totalPages}`;
     document.getElementById('currentPage').value = `${currentPage}`;
     document.getElementById('prevPage').disabled = currentPage <= 1; // Disable previous button if on first page
     document.getElementById('nextPage').disabled = currentPage >= totalPages; // Disable next button if on last page
   } else {
-    console.error('Expected jobs to be an array, but got:', data.jobs);
+    console.error('Expected jobs to be an array, but got:', json_response.jobs);
   }
 }
 
