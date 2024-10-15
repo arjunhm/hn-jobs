@@ -19,7 +19,9 @@ SKIP_LOCATIONS = ["berlin", "amsterdam", "london", "europe"] -- list of location
 ## Running the app
 
 `cd backend/`
-`python app.py`
+For initial setup (optional): `python setup.py`  
+To run flask: `python app.py`  
+
 
 ## Adding data
 Go to `add new data`, enter URL and table name (format: `<month>_<year>`)  
