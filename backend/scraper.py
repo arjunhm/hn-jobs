@@ -1,8 +1,12 @@
-import json
-
 import requests
 from bs4 import BeautifulSoup as bs
 from db import PSQLDriver
+from dotenv import load_dotenv
+import logging
+
+logger = logging.getLogger()
+
+load_dotenv()
 
 
 class Scraper:
@@ -32,25 +36,38 @@ class Scraper:
         for i in range(len(posts)):
             post = posts[i]
 
-            # post
-            post_id = posts[i]["id"]
-            post_link = f"https://news.ycombinator.com/item?id={post_id}"
-
-            # content
-            comment = post.select_one("div.commtext")
-            links = " ".join([a["href"] for a in comment.find_all("a", href=True)])
-            header = comment.find(string=True, recursive=False).strip()
-            company_name = header.split("|")[0].strip()
-            role = "|".join(header.split("|")[1:])
             try:
-                body = comment.find_all("p")[0].text
-            except Exception:
+                # post
+                post_id = posts[i]["id"]
+                post_link = f"https://news.ycombinator.com/item?id={post_id}"
+            except Exception as e:
+                logger.error(f"post: {e}")
                 continue
 
+            # content
+            try:
+                comment = post.select_one("div.commtext")
+                links = " ".join([a["href"] for a in comment.find_all("a", href=True)])
+                header = comment.find(string=True, recursive=False).strip()
+                company_name = header.split("|")[0].strip()
+                role = "|".join(header.split("|")[1:])
+            except Exception as e:
+                logger.error(f"content: {e}")
+                continue
+
+            try:
+                body = comment.find_all("p")[0].text
+            except Exception as e:
+                logger.error(f"body: {e}")
+
             # author
-            author = post.find("a", class_="hnuser")
-            author_name = author.text
-            author = {"name": author_name, "link": self.PROFILE_LINK + author_name}
+            try:
+                author = post.find("a", class_="hnuser")
+                author_name = author.text
+                author = {"name": author_name, "link": self.PROFILE_LINK + author_name}
+            except Exception as e:
+                logger.error(f"author: {e}")
+                continue
 
             if len(role) > 100:
                 role = ""
@@ -79,6 +96,7 @@ class Scraper:
 
         for job, data in self.data.items():
             self.psql_driver.insert_job_listing(self.table_name, job, data)
+            self.psql_driver.insert_company(job)
         self.psql_driver.skip_non_us_data(self.table_name)
 
         self.psql_driver.create_hn_post_table()
@@ -93,7 +111,7 @@ class Scraper:
             self.extract()
             self.push_to_db()
         except Exception as e:
-            print("Failed", e)
+            logger.error(e)
 
 
 def main():

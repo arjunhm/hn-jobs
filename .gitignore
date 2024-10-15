@@ -2,7 +2,7 @@
 *.json
 __pycache__
 .env
-main.py
 !requirements.txt
 log/
 *.log
+.venvs/
