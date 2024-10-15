@@ -58,6 +58,7 @@ async function getCompanyJobs(name) {
           <td>${job.role}</td>
           <td><a href="${job.post_link}" target="_blank">Details</a></td>
           <td>${job.status}</td>
+          <td>${job.table}</td>
         `;
       }
       openModal();

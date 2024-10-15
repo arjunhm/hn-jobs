@@ -51,6 +51,7 @@ class PSQLDriver:
                     table_name TEXT PRIMARY KEY,
                     post_link TEXT,
                     count INT,
+                    created_at TIMESTAMP,
                     updated_at TIMESTAMP
                 );
             """)
@@ -60,15 +61,17 @@ class PSQLDriver:
 
     def insert_hn_post(self, table_name: str, URL: str, count: int):
         try:
+            current_time = datetime.datetime.now()
             self.cur.execute(
                 """
-                    INSERT INTO hn_post (table_name, post_link, count)
-                    VALUES (%s, %s, %s)
+                    INSERT INTO hn_post (table_name, post_link, count, created_at, updated_at)
+                    VALUES (%s, %s, %s, %s, %s)
                     ON CONFLICT (table_name) DO UPDATE SET 
                         post_link = EXCLUDED.post_link,
-                        count = EXCLUDED.count;
+                        count = EXCLUDED.count,
+                        updated_at = EXCLUDED.updated_at;
                     """,
-                (table_name, URL, count),
+                (table_name, URL, count, current_time, current_time),
             )
             self.conn.commit()
         except Exception as e:
@@ -78,6 +81,17 @@ class PSQLDriver:
         try:
             self.cur.execute("""SELECT * FROM hn_post;""")
             return self.cur.fetchall()
+        except Exception as e:
+            logger.error(e)
+            return []
+
+    def get_list_of_tables(self):
+        try:
+            self.cur.execute("""
+                SELECT table_name FROM hn_post
+                ORDER BY created_at DESC;""")
+            names = [name[0] for name in self.cur.fetchall()]
+            return names
         except Exception as e:
             logger.error(e)
             return []
@@ -285,21 +299,14 @@ class PSQLDriver:
                 params = [name]
                 self.cur.execute(query, params)
                 data = self.cur.fetchall()
+                if data:
+                    data[0] = data[0] + (table,)
                 result.append(data)
         except Exception as e:
             logger.error(e)
         return result
 
     # misc
-
-    def get_list_of_tables(self):
-        try:
-            self.cur.execute("""SELECT table_name FROM hn_post;""")
-            names = [name[0] for name in self.cur.fetchall()]
-            return names
-        except Exception as e:
-            logger.error(e)
-            return []
 
     def drop_all_tables(self):
         try:

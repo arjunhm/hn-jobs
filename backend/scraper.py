@@ -10,9 +10,9 @@ load_dotenv()
 
 
 class Scraper:
-    def __init__(self, url, table_name):
+    def __init__(self, url):
         self.psql_driver = PSQLDriver()
-        self.table_name = table_name
+        self.table_name = None
 
         self.PROFILE_LINK = "https://news.ycombinator.com/user?id="
         self.URL = url
@@ -27,9 +27,21 @@ class Scraper:
         if response.status_code == 200:
             self.scraped_data = response.text
 
+    def extract_table_name(self, soup):
+        href = self.URL.split("/")[-1]
+        table_name = soup.find("a", href=href).text
+        table_name = table_name.split("(")[-1]
+        table_name = table_name.split(")")[0]
+        table_name = "_".join(table_name.split())
+        table_name = table_name.lower()
+        return table_name
+
     def extract(self):
         content = self.scraped_data
         soup = bs(content, "html.parser")
+        table_name = self.extract_table_name(soup)
+        self.table_name = table_name
+
         posts = soup.find_all("tr", class_="athing comtr")
         self.count = len(posts)
 
@@ -117,7 +129,7 @@ class Scraper:
 
 
 def main():
-    scraper = Scraper("https://news.ycombinator.com/item?id=41425910", "sept_24")
+    scraper = Scraper("https://news.ycombinator.com/item?id=41425910")
     scraper.run()
 
 

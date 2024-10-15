@@ -148,7 +148,7 @@ def scrape_data():
     url = data.get("url")
     table_name = data.get("table_name")
 
-    scraper = Scraper(url, table_name)
+    scraper = Scraper(url)
     scraper.run()
 
     return jsonify({"message": "Scraping initiated successfully."}), 200
@@ -197,6 +197,7 @@ def get_company_jobs():
                     "status": row[5],
                     "post_link": row[6],
                     "links": row[7],
+                    "table": row[9],
                 }
             )
 
@@ -212,10 +213,8 @@ def initialize_tables():
 def update_data():
     data = psql_driver.get_hn_post_table()
     for row in data:
-        print(row)
-        table_name = row[0]
         link = row[1]
-        Scraper(link, table_name).run()
+        Scraper(link).run()
     return jsonify({"message": "Updated successfully."}), 200
 
 
