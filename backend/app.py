@@ -29,10 +29,15 @@ dictConfig(
                 "filename": "log/app.log",
                 "level": "INFO",
             },
+            "console": {
+                "class": "logging.StreamHandler",
+                "formatter": "default",
+                "level": "ERROR",
+            },
         },
         "root": {
             "level": "INFO",
-            "handlers": ["file"],
+            "handlers": ["file", "console"],
         },
     }
 )
@@ -211,7 +216,7 @@ def initialize_tables():
 
 @app.route("/update/", methods=["POST"])
 def update_data():
-    data = psql_driver.get_hn_post_table()
+    data = psql_driver.get_list_of_tables()
     for row in data:
         link = row[1]
         Scraper(link).run()
