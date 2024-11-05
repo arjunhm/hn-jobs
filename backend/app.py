@@ -216,9 +216,10 @@ def initialize_tables():
 
 @app.route("/update/", methods=["POST"])
 def update_data():
-    data = psql_driver.get_list_of_tables()
+    data = psql_driver.get_all_from_hn_post()
     for row in data:
         link = row[1]
+        print(f"{link=}")
         Scraper(link).run()
     return jsonify({"message": "Updated successfully."}), 200
 

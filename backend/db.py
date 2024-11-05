@@ -96,6 +96,16 @@ class PSQLDriver:
             logger.error(e)
             return []
 
+    def get_all_from_hn_post(self):
+        try:
+            self.cur.execute("""
+                SELECT * FROM hn_post
+                ORDER BY created_at DESC;""")
+            return self.cur.fetchall()
+        except Exception as e:
+            logger.error(e)
+            return []
+
     def update_hn_post(self, table_name: str, count: int):
         try:
             self.cur.execute(
