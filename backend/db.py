@@ -96,7 +96,7 @@ class PSQLDriver:
             logger.error(e)
             return []
 
-    def get_all_from_hn_post(self):
+    def get_all_from_hn_post(self, limit=3):
         try:
             self.cur.execute(
                 """
