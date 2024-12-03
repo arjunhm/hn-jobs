@@ -216,7 +216,7 @@ def initialize_tables():
 
 @app.route("/update/", methods=["POST"])
 def update_data():
-    data = psql_driver.get_all_from_hn_post()
+    data = psql_driver.get_all_from_hn_post(limit=2)
     for row in data:
         link = row[1]
         print(f"{link=}")

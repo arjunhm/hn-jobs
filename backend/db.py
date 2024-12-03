@@ -98,9 +98,13 @@ class PSQLDriver:
 
     def get_all_from_hn_post(self):
         try:
-            self.cur.execute("""
+            self.cur.execute(
+                """
                 SELECT * FROM hn_post
-                ORDER BY created_at DESC;""")
+                ORDER BY created_at DESC
+                limit %s;""",
+                (limit,),
+            )
             return self.cur.fetchall()
         except Exception as e:
             logger.error(e)
