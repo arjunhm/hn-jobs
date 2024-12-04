@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from company.models import Author, Company
 from company.serializers import AuthorSerializer, CompanySerializer
 
+
 class AuthorListAPI(generics.ListAPIView):
     queryset = Author.objects.all()
     serializer_class = AuthorSerializer
@@ -13,4 +14,3 @@ class AuthorListAPI(generics.ListAPIView):
 class CompanyListAPI(generics.ListAPIView):
     queryset = Company.objects.all()
     serializer_class = CompanySerializer
-
