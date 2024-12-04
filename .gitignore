@@ -1,6 +1,6 @@
-__pycache__
-.venvs/
+__pycache__/
 *_env/
+.venvs/
 .env
 log/
 *.log
