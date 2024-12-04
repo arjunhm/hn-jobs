@@ -5,48 +5,93 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
-        ('company', '0001_initial'),
+        ("company", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='HNLink',
+            name="HNLink",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('month', models.CharField(max_length=99)),
-                ('year', models.CharField(max_length=99)),
-                ('link', models.CharField(max_length=99)),
-                ('count', models.IntegerField(default=0)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("month", models.CharField(max_length=99)),
+                ("year", models.CharField(max_length=99)),
+                ("link", models.CharField(max_length=99)),
+                ("count", models.IntegerField(default=0)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
             ],
             options={
-                'ordering': ['-year', '-month'],
-                'unique_together': {('year', 'month')},
+                "ordering": ["-year", "-month"],
+                "unique_together": {("year", "month")},
             },
         ),
         migrations.CreateModel(
-            name='Post',
+            name="Post",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('month', models.CharField(max_length=99)),
-                ('year', models.CharField(max_length=99)),
-                ('role', models.TextField(blank=True, null=True)),
-                ('body', models.TextField(blank=True, null=True)),
-                ('link', models.CharField(max_length=99)),
-                ('links', models.JSONField(blank=True, default=list, null=True)),
-                ('status', models.CharField(choices=[('not_applied', 'Not Applied'), ('applied', 'Applied'), ('skipped', 'Skipped'), ('bookmarked', 'Bookmarked'), ('manual_review', 'Manual Review')], default='not_applied', max_length=99)),
-                ('extra_status', models.CharField(blank=True, max_length=99, null=True)),
-                ('author_name', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='posts', to='company.author')),
-                ('company', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='posts', to='company.company')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("month", models.CharField(max_length=99)),
+                ("year", models.CharField(max_length=99)),
+                ("role", models.TextField(blank=True, null=True)),
+                ("body", models.TextField(blank=True, null=True)),
+                ("link", models.CharField(max_length=99)),
+                ("links", models.JSONField(blank=True, default=list, null=True)),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("not_applied", "Not Applied"),
+                            ("applied", "Applied"),
+                            ("skipped", "Skipped"),
+                            ("bookmarked", "Bookmarked"),
+                            ("manual_review", "Manual Review"),
+                        ],
+                        default="not_applied",
+                        max_length=99,
+                    ),
+                ),
+                (
+                    "extra_status",
+                    models.CharField(blank=True, max_length=99, null=True),
+                ),
+                (
+                    "author_name",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="posts",
+                        to="company.author",
+                    ),
+                ),
+                (
+                    "company",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="posts",
+                        to="company.company",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['-year', '-month', 'company'],
-                'unique_together': {('year', 'month', 'company', 'author_name')},
+                "ordering": ["-year", "-month", "company"],
+                "unique_together": {("year", "month", "company", "author_name")},
             },
         ),
     ]

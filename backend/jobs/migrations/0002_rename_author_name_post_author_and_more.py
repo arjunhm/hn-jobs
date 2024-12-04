@@ -4,20 +4,19 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('company', '0001_initial'),
-        ('jobs', '0001_initial'),
+        ("company", "0001_initial"),
+        ("jobs", "0001_initial"),
     ]
 
     operations = [
         migrations.RenameField(
-            model_name='post',
-            old_name='author_name',
-            new_name='author',
+            model_name="post",
+            old_name="author_name",
+            new_name="author",
         ),
         migrations.AlterUniqueTogether(
-            name='post',
-            unique_together={('year', 'month', 'company', 'author')},
+            name="post",
+            unique_together={("year", "month", "company", "author")},
         ),
     ]

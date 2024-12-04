@@ -1,5 +1,6 @@
 from django.db import models
 
+
 class HNLink(models.Model):
     month = models.CharField(max_length=99)
     year = models.CharField(max_length=99)
@@ -43,7 +44,9 @@ class Post(models.Model):
     link = models.CharField(max_length=99)
     links = models.JSONField(default=list, null=True, blank=True)
 
-    status = models.CharField(max_length=99, choices=STATUS_TYPES, default="not_applied")
+    status = models.CharField(
+        max_length=99, choices=STATUS_TYPES, default="not_applied"
+    )
     extra_status = models.CharField(max_length=99, null=True, blank=True)
 
     class Meta:
@@ -52,4 +55,3 @@ class Post(models.Model):
 
         def __str__(self):
             return f"{self.company}__{self.month}-{self.year}"
-

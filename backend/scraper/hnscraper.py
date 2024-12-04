@@ -1,7 +1,7 @@
 import requests
 from bs4 import BeautifulSoup as bs
 
-from scraper import db 
+from scraper import db
 
 
 class Scraper:
@@ -100,11 +100,10 @@ class Scraper:
         print(len(self.data))
 
     def push_to_db(self):
-
         # create HNLink object
         # old
-        #self.psql_driver.create_hn_post_table()
-        #self.psql_driver.insert_hn_post(self.table_name, self.URL, self.count)
+        # self.psql_driver.create_hn_post_table()
+        # self.psql_driver.insert_hn_post(self.table_name, self.URL, self.count)
         # new
         month, year = self.table_name.split("_")
         db.create_hnlink(month, year, self.URL, self.count)

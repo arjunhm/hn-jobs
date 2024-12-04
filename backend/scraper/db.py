@@ -1,8 +1,9 @@
-from company.models import Author, Company 
-from jobs.models import HNLink, Post 
+from company.models import Author, Company
+from jobs.models import HNLink, Post
+
 
 def create_author(data: dict):
-    name, link = data['name'], data['link']
+    name, link = data["name"], data["link"]
     author, is_created = Author.objects.get_or_create(name=name, link=link)
     return author
 
@@ -19,7 +20,7 @@ def create_hnlink(month: str, year: str, link: str, count: int):
 
 
 def create_post(month, year, company_name, data: dict):
-    author = create_author(data['author'])
+    author = create_author(data["author"])
     company = create_company(company_name)
 
     post, _ = Post.objects.get_or_create(
@@ -32,4 +33,3 @@ def create_post(month, year, company_name, data: dict):
         link=data.get("post_link"),
         links=data.get("links", []),
     )
-
