@@ -32,3 +32,18 @@ class AuthorPostAPI(views.APIView):
         return Response(serialized_data.data, status=200)
 
 
+class CompanyPostAPI(views.APIView):
+    serializer_class = PostSerializer
+
+    def get(self, request):
+        id = request.GET.get("id")
+        try:
+            company = Company.objects.get(id=id)
+        except:
+            return Response({"error": "Company not found"}, status=404)
+        
+        posts = company.posts.all()
+        serialized_data = self.serializer_class(posts, many=True)
+
+        return Response(serialized_data.data, status=200)
+
