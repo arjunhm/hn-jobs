@@ -1,4 +1,5 @@
 __pycache__
+.venvs/
 *_env/
 .env
 log/
