@@ -1,9 +1,9 @@
-from jobs.models import  Post
 from rest_framework import serializers
 
-class PostSerializer(serializers.ModelSerializer):
+from jobs.models import Post
 
+
+class PostSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
         fields = ["link"]
-

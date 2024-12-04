@@ -6,6 +6,7 @@ from company.models import Author, Company
 from company.serializers import AuthorSerializer, CompanySerializer
 from jobs.serializers import PostSerializer
 
+
 class AuthorListAPI(generics.ListAPIView):
     queryset = Author.objects.all()
     serializer_class = AuthorSerializer
@@ -25,7 +26,7 @@ class AuthorPostAPI(views.APIView):
             author = Author.objects.get(id=id)
         except:
             return Response({"error": "Author not found"}, status=404)
-        
+
         posts = author.posts.all()
         serialized_data = self.serializer_class(posts, many=True)
 
@@ -41,9 +42,8 @@ class CompanyPostAPI(views.APIView):
             company = Company.objects.get(id=id)
         except:
             return Response({"error": "Company not found"}, status=404)
-        
+
         posts = company.posts.all()
         serialized_data = self.serializer_class(posts, many=True)
 
         return Response(serialized_data.data, status=200)
-
