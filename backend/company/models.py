@@ -6,7 +6,7 @@ class Author(models.Model):
     link = models.CharField(max_length=99)
 
     class Meta:
-        ordering = ["-name"]
+        ordering = ["name"]
 
         def __str__(self):
             return f"{self.name}"
@@ -17,7 +17,7 @@ class Company(models.Model):
     link = models.CharField(max_length=99, null=True, blank=True)
 
     class Meta:
-        ordering = ["-name"]
+        ordering = ["name"]
 
         def __str__(self):
             return f"{self.name}"
