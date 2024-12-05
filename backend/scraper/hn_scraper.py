@@ -6,7 +6,29 @@ from scraper import db
 
 class Scraper:
     def __init__(self, url):
-        self.table_name = None
+        # for table name
+        self.month = None
+        self.year = None
+        # {june: 6} mapping
+        self.month_to_num = {
+            month: i + 1
+            for i, month in enumerate(
+                [
+                    "january",
+                    "february",
+                    "march",
+                    "april",
+                    "may",
+                    "june",
+                    "july",
+                    "august",
+                    "septmeber",
+                    "october",
+                    "november",
+                    "december",
+                ]
+            )
+        }
 
         self.PROFILE_LINK = "https://news.ycombinator.com/user?id="
         self.URL = url
@@ -24,17 +46,15 @@ class Scraper:
     def extract_table_name(self, soup):
         href = self.URL.split("/")[-1]
         table_name = soup.find("a", href=href).text
-        table_name = table_name.split("(")[-1]
-        table_name = table_name.split(")")[0]
-        table_name = "_".join(table_name.split())
-        table_name = table_name.lower()
-        return table_name
+        table_name = table_name.split("(")[-1].lower()
+        table_name = table_name.split(")")[0].lower()
+        month, self.year = table_name.split()
+        self.month = self.month_to_num.get(month, 0)
 
     def extract(self):
         content = self.scraped_data
         soup = bs(content, "html.parser")
-        table_name = self.extract_table_name(soup)
-        self.table_name = table_name
+        self.extract_table_name(soup)
 
         posts = soup.find_all("tr", class_="athing comtr")
         self.count = len(posts)
@@ -100,22 +120,10 @@ class Scraper:
         print(len(self.data))
 
     def push_to_db(self):
-        # create HNLink object
-        # old
-        # self.psql_driver.create_hn_post_table()
-        # self.psql_driver.insert_hn_post(self.table_name, self.URL, self.count)
-        # new
-        month, year = self.table_name.split("_")
-        db.create_hnlink(month, year, self.URL, self.count)
+        db.create_hnlink(self.month, self.year, self.URL, self.count)
 
         for company, data in self.data.items():
-            # old
-            # self.psql_driver.insert_job_listing(month, year, company, data)
-            # new
-            db.create_post(month, year, company, data)
-
-        # ! need to add this
-        # self.psql_driver.skip_non_us_data(self.table_name)
+            db.create_post(self.month, self.year, company, data)
 
     def run(self):
         try:

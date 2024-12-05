@@ -4,8 +4,8 @@ from rest_framework.response import Response
 
 from core.mixins import StandardPaginationMixin
 from core.pagination import StandardPagination
-from jobs.models import Post
-from jobs.serializers import PostSerializer
+from jobs.models import HNLink, Post
+from jobs.serializers import HNLinkSerializer, PostSerializer
 
 
 class PostListAPI(views.APIView, StandardPaginationMixin):
@@ -16,7 +16,6 @@ class PostListAPI(views.APIView, StandardPaginationMixin):
         month = request.GET.get("month")
         year = request.GET.get("year")
 
-        # ! add filters
         queryset = Post.objects.filter(Q(month=month) & Q(year=year))
 
         page = self.paginate_queryset(queryset)
@@ -40,3 +39,14 @@ class PostDetailAPI(views.APIView):
         post.save()
 
         return Response({"success": True}, status=200)
+
+
+class HNLinkAPI(views.APIView, StandardPaginationMixin):
+    serializer_class = HNLinkSerializer
+    pagination_class = StandardPagination
+
+    def get(self, request):
+        queryset = HNLink.objects.all()
+        page = self.paginate_queryset(queryset)
+        serializer = self.serializer_class(page, many=True)
+        return self.get_paginated_response(serializer.data)
