@@ -2,10 +2,12 @@
 from rest_framework.pagination import LimitOffsetPagination, PageNumberPagination
 
 
-class StandardPagination(LimitOffsetPagination):
-    default_limit = 10
-    limit_query_param = "per_page"
-    offset_query_param = "page"
+class StandardPagination(PageNumberPagination):
+    page_query_param = "page"
+    page_size_query_param = "per_page"
+    page_size = 10
+
+    invalid_page_message = "Invalid page {page_number}. {message}."
 
 
 class StandardPaginationMixin(object):
