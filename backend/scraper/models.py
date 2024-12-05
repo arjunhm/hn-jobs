@@ -1,3 +1,14 @@
 from django.db import models
 
-# Create your models here.
+"""
+class Activity(models.Model):
+
+    date 
+    start_time
+    end time 
+    duration 
+    status 
+    link 
+    count 
+
+"""
