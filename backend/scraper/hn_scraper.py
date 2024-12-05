@@ -53,7 +53,7 @@ class Scraper:
             # content
             try:
                 comment = post.select_one("div.commtext")
-                links = " ".join([a["href"] for a in comment.find_all("a", href=True)])
+                links = [a["href"] for a in comment.find_all("a", href=True)]
                 header = comment.find(string=True, recursive=False).strip()
                 company_name = header.split("|")[0].strip()
                 role = "|".join(header.split("|")[1:])
