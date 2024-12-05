@@ -41,8 +41,8 @@ class Post(models.Model):
     role = models.TextField(null=True, blank=True)
     body = models.TextField(null=True, blank=True)
 
-    link = models.CharField(max_length=99)
-    links = models.JSONField(default=list, null=True, blank=True)
+    post_link = models.CharField(max_length=99)
+    external_links = models.JSONField(default=list, null=True, blank=True)
 
     status = models.CharField(
         max_length=99, choices=STATUS_TYPES, default="not_applied"

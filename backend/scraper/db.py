@@ -30,6 +30,6 @@ def create_post(month, year, company_name, data: dict):
         company=company,
         role=data.get("role"),
         body=data.get("body"),
-        link=data.get("post_link"),
-        links=data.get("links", []),
+        post_link=data.get("post_link"),
+        external_links=data.get("links", []),
     )

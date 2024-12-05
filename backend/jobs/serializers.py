@@ -16,7 +16,7 @@ class PostSerializer(serializers.ModelSerializer):
 class PostLinkSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
-        fields = ["link"]
+        fields = ["post_link"]
 
 
 class HNLinkSerializer(serializers.ModelSerializer):
