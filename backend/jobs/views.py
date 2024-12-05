@@ -16,6 +16,12 @@ class PostListAPI(views.APIView, StandardPaginationMixin):
         month = request.GET.get("month")
         year = request.GET.get("year")
 
+        if month is None or year is None:
+            # get latest month and year
+            hn_link = HNLink.objects.first()
+            if hn_link is not None:
+                month, year = hn_link.month, hn_link.year
+
         queryset = Post.objects.filter(Q(month=month) & Q(year=year))
 
         page = self.paginate_queryset(queryset)
