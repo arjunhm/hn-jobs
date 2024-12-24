@@ -4,9 +4,11 @@ from company.models import Author, Company
 
 
 class AuthorSerializer(serializers.ModelSerializer):
+    count = 0
     class Meta:
         model = Author
-        exclude = ["id"]
+        fields = ["name", "link", "count"]
+
 
 
 class CompanySerializer(serializers.ModelSerializer):
